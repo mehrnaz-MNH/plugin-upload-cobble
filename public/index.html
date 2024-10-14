@@ -116,10 +116,12 @@
       </form>
       <div id="options" class="options">
         <button id="validation" type="button" class="val-btn">Validate</button>
-        <button id="building" type="submit" class="build-btn">
+        <button id="building" type="button" class="build-btn">
           Build Image
         </button>
-        <button type="submit" class="push-btn">Push Image To GitHub</button>
+        <button id="pushing" type="submit" class="push-btn">
+          Push Image To GitHub
+        </button>
       </div>
       <div id="result"></div>
     </div>
@@ -131,8 +133,10 @@
       const resultDiv = document.getElementById("result");
       const validateBtn = document.getElementById("validation");
       const buildBtn = document.getElementById("building");
+      const pushBtn = document.getElementById("pushing");
 
       let dirPath = "";
+      let dockerPath = "";
 
       uploadForm.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -201,6 +205,8 @@
             resultDiv.textContent =
               "Success: " + result.message ||
               "Docker image Validated successfully!";
+            dockerPath = result.pathName;
+            console.log(dockerPath);
             buildBtn.style.display = "block";
           } else {
             resultDiv.classList.add("error");
@@ -211,7 +217,43 @@
           resultDiv.classList.add("error");
           resultDiv.classList.remove("success");
           resultDiv.style.display = "block";
-          resultDiv.textContent = "Error uploading file: " + error.message;
+          resultDiv.textContent = "Error validating docker: " + error.message;
+        }
+      });
+
+      buildBtn.addEventListener("click", async () => {
+        try {
+          resultDiv.style.display = "none";
+
+          const response = await fetch("/build", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ dirName: dockerPath }),
+          });
+
+          const result = await response.json();
+
+          resultDiv.style.display = "block";
+
+          if (response.ok) {
+            resultDiv.classList.add("success");
+            resultDiv.classList.remove("error");
+            resultDiv.textContent =
+              "Success: " + result.message ||
+              "Docker image build successfully!";
+            pushBtn.style.display = "block";
+          } else {
+            resultDiv.classList.add("error");
+            resultDiv.classList.remove("success");
+            resultDiv.textContent = "Error: " + result.message;
+          }
+        } catch (error) {
+          resultDiv.classList.add("error");
+          resultDiv.classList.remove("success");
+          resultDiv.style.display = "block";
+          resultDiv.textContent = "Error building image: " + error.message;
         }
       });
     </script>

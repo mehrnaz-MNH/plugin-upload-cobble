@@ -1,0 +1,100 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.container {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 400px;
+  text-align: center;
+}
+.container h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+input[type="file"] {
+  margin-bottom: 20px;
+}
+.btn {
+  background-color: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.btn:hover {
+  background-color: #218838;
+}
+#result {
+  margin-top: 20px;
+  padding: 10px;
+  display: none;
+  border-radius: 5px;
+}
+.success {
+  background-color: #d4edda;
+  color: #155724;
+}
+.error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+.options {
+  display: none;
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  justify-content: center;
+}
+
+.val-btn {
+  background-color: #28a745;
+  color: white;
+  margin-bottom: 3px;
+  margin-top: 3px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.val-btn:hover {
+  background-color: #218838;
+}
+
+.build-btn {
+  display: none;
+  background-color: #28a745;
+  margin-bottom: 3px;
+  margin-top: 3px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.build-btn:hover {
+  background-color: #218838;
+}
+
+.push-btn {
+  display: none;
+  background-color: #28a745;
+  margin-bottom: 3px;
+  margin-top: 3px;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.push-btn:hover {
+  background-color: #218838;
+}
