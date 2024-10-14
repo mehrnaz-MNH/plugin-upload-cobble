@@ -55,6 +55,56 @@
         background-color: #f8d7da;
         color: #721c24;
       }
+      .options {
+        display: none;
+        background-color: #fff;
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        justify-content: center;
+      }
+
+      .val-btn {
+        background-color: #28a745;
+        color: white;
+        margin-bottom: 3px;
+        margin-top: 3px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .val-btn:hover {
+        background-color: #218838;
+      }
+
+      .build-btn {
+        display: none;
+        background-color: #28a745;
+        margin-bottom: 3px;
+        margin-top: 3px;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .build-btn:hover {
+        background-color: #218838;
+      }
+
+      .push-btn {
+        display: none;
+        background-color: #28a745;
+        margin-bottom: 3px;
+        margin-top: 3px;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .push-btn:hover {
+        background-color: #218838;
+      }
     </style>
   </head>
   <body>
@@ -64,9 +114,11 @@
         <input type="file" id="fileInput" accept=".zip" required />
         <button type="submit" class="btn">Upload</button>
       </form>
-      <div class="options">
-        <button type="submit" class="val-btn">Validate</button>
-        <button type="submit" class="build-btn">Build Image</button>
+      <div id="options" class="options">
+        <button id="validation" type="button" class="val-btn">Validate</button>
+        <button id="building" type="submit" class="build-btn">
+          Build Image
+        </button>
         <button type="submit" class="push-btn">Push Image To GitHub</button>
       </div>
       <div id="result"></div>
@@ -75,7 +127,12 @@
     <script>
       const uploadForm = document.getElementById("uploadForm");
       const fileInput = document.getElementById("fileInput");
+      const optionsDiv = document.getElementById("options");
       const resultDiv = document.getElementById("result");
+      const validateBtn = document.getElementById("validation");
+      const buildBtn = document.getElementById("building");
+
+      let dirPath = "";
 
       uploadForm.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -92,7 +149,7 @@
         try {
           resultDiv.style.display = "none";
 
-          const response = await fetch("/uploadAndValidate", {
+          const response = await fetch("/upload", {
             method: "POST",
             body: formData,
           });
@@ -105,8 +162,46 @@
             resultDiv.classList.add("success");
             resultDiv.classList.remove("error");
             resultDiv.textContent =
+              "Success: " + result.message || "File Uploaded!";
+            optionsDiv.style.display = "block";
+            dirPath = result.path;
+            console.log(dirPath);
+          } else {
+            resultDiv.classList.add("error");
+            resultDiv.classList.remove("success");
+            resultDiv.textContent = "Error: " + result.message;
+          }
+        } catch (error) {
+          resultDiv.classList.add("error");
+          resultDiv.classList.remove("success");
+          resultDiv.style.display = "block";
+          resultDiv.textContent = "Error uploading file: " + error.message;
+        }
+      });
+
+      validateBtn.addEventListener("click", async () => {
+        try {
+          resultDiv.style.display = "none";
+
+          const response = await fetch("/validate", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ dirName: dirPath }),
+          });
+
+          const result = await response.json();
+
+          resultDiv.style.display = "block";
+
+          if (response.ok) {
+            resultDiv.classList.add("success");
+            resultDiv.classList.remove("error");
+            resultDiv.textContent =
               "Success: " + result.message ||
-              "Docker image built and validated successfully!";
+              "Docker image Validated successfully!";
+            buildBtn.style.display = "block";
           } else {
             resultDiv.classList.add("error");
             resultDiv.classList.remove("success");

@@ -11,6 +11,8 @@ import { fileURLToPath } from 'url';
 const app = express();
 const port = 3000;
 app.use(fileUpload());
+app.use(express.json());
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,15 +33,15 @@ app.post('/upload', async (req, res) => {
 
     const pathName = uuidv4() + '_' + file.name;
     const unZipName = 'Extracted_' + pathName;
-    const filePath = path.join(__dirname, 'uploads', pathName);
-    const unZipPath = path.join(__dirname, 'unzipped', unZipName);
+    const filePath = path.join(__dirname, 'files/uploads', pathName);
+    const unZipPath = path.join(__dirname, 'files/unzipped', unZipName);
 
-    if (!fs.existsSync(path.join(__dirname, 'uploads'))) {
-        fs.mkdirSync(path.join(__dirname, 'uploads'));
+    if (!fs.existsSync(path.join(__dirname, 'files/uploads'))) {
+        fs.mkdirSync(path.join(__dirname, 'files/uploads'));
     }
 
-    if (!fs.existsSync(path.join(__dirname, 'unzipped'))) {
-        fs.mkdirSync(path.join(__dirname, 'unzipped'));
+    if (!fs.existsSync(path.join(__dirname, 'files/unzipped'))) {
+        fs.mkdirSync(path.join(__dirname, 'files/unzipped'));
     }
 
     file.mv(filePath, (err) => {
@@ -50,27 +52,55 @@ app.post('/upload', async (req, res) => {
         fs.createReadStream(filePath)
             .pipe(unzipper.Extract({ path: unZipPath }))
             .on('close', async () => {
-                const dockerfilePath = await findDockerfile(unZipPath);
 
-                if (!dockerfilePath) {
-                    return res.status(500).send('No Dockerfile found!');
-                }
-
-                const isDockerValid = await validateDockerfile(dockerfilePath);
-
-                if (!isDockerValid) {
-                    return res.status(500).send('Docker file is not valid!');
-                }
-
-
-                return res.status(200).send('Docker File Is Valid')
+                return res.status(200).json({ success: true, path: unZipPath, message: "Upload Successful" });
 
             })
             .on('error', () => {
-                return res.status(500).send('Unzipping failed!');
+                res
+                    .status(500)
+                    .json({ success: false, message: "Uploading Failed" });
             });
     });
 });
+
+app.post('/validate', async (req, res) => {
+
+    const { dirName } = req.body
+    console.log(req)
+    console.log(dirName)
+    if (!dirName) {
+        return res.status(400).json({ success: false, message: 'failed to find Directory' })
+    }
+
+    try {
+
+        const dockerfilePath = await findDockerfile(dirName);
+
+        if (!dockerfilePath) {
+            return res.status(400).json({ success: false, message: "No Docker file found" });
+        }
+
+        const isDockerValid = await validateDockerfile(dockerfilePath);
+
+        if (!isDockerValid) {
+            return res.status(400).json({ success: false, message: 'Dockerfile is not valid' });
+        }
+
+
+        return res.status(200).json({ success: true, message: "Validation Successful" });
+
+
+
+    } catch (err) {
+
+        res
+            .status(500)
+            .json({ success: false, message: "Validating Failed" });
+
+    }
+
+})
 
 async function findDockerfile(dir) {
     const files = fs.readdirSync(dir);
@@ -89,7 +119,8 @@ async function findDockerfile(dir) {
 
 function validateDockerfile(dockerfilePath) {
     return new Promise((resolve, reject) => {
-        exec(`hadolint ${dockerfilePath}`, (error, stdout, stderr) => {
+        const safePath = dockerfilePath.replace(/ /g, '\\ ');
+        exec(`hadolint ${safePath}`, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Dockerfile validation failed: ${stderr}`);
                 return resolve(false);
