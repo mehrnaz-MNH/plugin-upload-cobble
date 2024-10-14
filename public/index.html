@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Docker File Uploader</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      .container {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        width: 400px;
+        text-align: center;
+      }
+      .container h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+      input[type="file"] {
+        margin-bottom: 20px;
+      }
+      .btn {
+        background-color: #28a745;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .btn:hover {
+        background-color: #218838;
+      }
+      #result {
+        margin-top: 20px;
+        padding: 10px;
+        display: none;
+        border-radius: 5px;
+      }
+      .success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Upload Your Code (.zip)</h1>
+      <form id="uploadForm">
+        <input type="file" id="fileInput" accept=".zip" required />
+        <button type="submit" class="btn">Upload</button>
+      </form>
+      <div class="options">
+        <button type="submit" class="val-btn">Validate</button>
+        <button type="submit" class="build-btn">Build Image</button>
+        <button type="submit" class="push-btn">Push Image To GitHub</button>
+      </div>
+      <div id="result"></div>
+    </div>
+
+    <script>
+      const uploadForm = document.getElementById("uploadForm");
+      const fileInput = document.getElementById("fileInput");
+      const resultDiv = document.getElementById("result");
+
+      uploadForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const file = fileInput.files[0];
+        if (!file) {
+          alert("Please choose a file.");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+          resultDiv.style.display = "none";
+
+          const response = await fetch("/uploadAndValidate", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+
+          resultDiv.style.display = "block";
+
+          if (response.ok) {
+            resultDiv.classList.add("success");
+            resultDiv.classList.remove("error");
+            resultDiv.textContent =
+              "Success: " + result.message ||
+              "Docker image built and validated successfully!";
+          } else {
+            resultDiv.classList.add("error");
+            resultDiv.classList.remove("success");
+            resultDiv.textContent = "Error: " + result.message;
+          }
+        } catch (error) {
+          resultDiv.classList.add("error");
+          resultDiv.classList.remove("success");
+          resultDiv.style.display = "block";
+          resultDiv.textContent = "Error uploading file: " + error.message;
+        }
+      });
+    </script>
+  </body>
+</html>
