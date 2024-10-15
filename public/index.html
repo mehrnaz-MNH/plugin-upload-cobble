@@ -68,6 +68,43 @@
         flex-direction: column;
         align-items: center;
       }
+
+      .val-btn {
+        display: none;
+        background-color: #28a745;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .val-btn:hover {
+        background-color: #218838;
+      }
+      .buil-btn {
+        display: none;
+        background-color: #28a745;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .buil-btn:hover {
+        background-color: #218838;
+      }
+      .push-btn {
+        display: none;
+        background-color: #28a745;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .push-btn:hover {
+        background-color: #218838;
+      }
     </style>
   </head>
   <body>
@@ -78,9 +115,11 @@
         <button type="submit" class="btn">Upload</button>
       </form>
       <div id="options" class="options">
-        <button id="validation" type="button" class="btn">Validate</button>
-        <button id="building" type="button" class="btn">Build Image</button>
-        <button id="pushing" type="button" class="btn">
+        <button id="validation" type="button" class="val-btn">Validate</button>
+        <button id="building" type="button" class="buil-btn">
+          Build Image
+        </button>
+        <button id="pushing" type="button" class="push-btn">
           Push Image To GitHub
         </button>
       </div>
