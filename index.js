@@ -159,7 +159,7 @@ app.post('/push', async (req, res) => {
             return res.status(400).json({ success: false, message: "Login Failed" });
         }
 
-        const githubRepo = "mehrnaz-MNH/plugin-upload-cobble"
+        const githubRepo = "mehrnaz-mnh/plugin-upload-cobble"
 
         await pushToGithub(imageName, githubRepo)
 
