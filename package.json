@@ -11,6 +11,7 @@
   "description": "This Feautre was build as part of cobble platform , user should be able to upload their code files and push their image to github ",
   "dependencies": {
     "child_process": "^1.0.2",
+    "dotenv": "^16.4.5",
     "express": "^4.20.0",
     "express-fileupload": "^1.5.1",
     "fs": "^0.0.1-security",

@@ -63,6 +63,10 @@
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         text-align: center;
         justify-content: center;
+        display: none;
+        flex: auto;
+        flex-direction: column;
+        align-items: center;
       }
 
       .val-btn {
@@ -70,6 +74,7 @@
         color: white;
         margin-bottom: 3px;
         margin-top: 3px;
+        padding: 10px 20px;
         border: none;
         border-radius: 5px;
         cursor: pointer;
@@ -83,6 +88,7 @@
         background-color: #28a745;
         margin-bottom: 3px;
         margin-top: 3px;
+        padding: 10px 20px;
         color: white;
         border: none;
         border-radius: 5px;
@@ -97,6 +103,7 @@
         background-color: #28a745;
         margin-bottom: 3px;
         margin-top: 3px;
+        padding: 10px 20px;
         color: white;
         border: none;
         border-radius: 5px;
@@ -119,7 +126,7 @@
         <button id="building" type="button" class="build-btn">
           Build Image
         </button>
-        <button id="pushing" type="submit" class="push-btn">
+        <button id="pushing" type="button" class="push-btn">
           Push Image To GitHub
         </button>
       </div>
@@ -137,6 +144,7 @@
 
       let dirPath = "";
       let dockerPath = "";
+      let dockerImage = "";
 
       uploadForm.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -243,6 +251,8 @@
             resultDiv.textContent =
               "Success: " + result.message ||
               "Docker image build successfully!";
+            dockerImage = result.imageName;
+            console.log(dockerImage);
             pushBtn.style.display = "block";
           } else {
             resultDiv.classList.add("error");
@@ -254,6 +264,42 @@
           resultDiv.classList.remove("success");
           resultDiv.style.display = "block";
           resultDiv.textContent = "Error building image: " + error.message;
+        }
+      });
+
+      pushBtn.addEventListener("click", async () => {
+        try {
+          resultDiv.style.display = "none";
+
+          const response = await fetch("/push", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ imageName: dockerImage }),
+          });
+
+          const result = await response.json();
+
+          resultDiv.style.display = "block";
+
+          if (response.ok) {
+            resultDiv.classList.add("success");
+            resultDiv.classList.remove("error");
+            resultDiv.textContent =
+              "Success: " + result.message ||
+              "Docker image Pushed to github successfully!";
+            pushBtn.style.display = "block";
+          } else {
+            resultDiv.classList.add("error");
+            resultDiv.classList.remove("success");
+            resultDiv.textContent = "Error: " + result.message;
+          }
+        } catch (error) {
+          resultDiv.classList.add("error");
+          resultDiv.classList.remove("success");
+          resultDiv.style.display = "block";
+          resultDiv.textContent = "Error pushing image: " + error.message;
         }
       });
     </script>

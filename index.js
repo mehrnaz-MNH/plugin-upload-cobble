@@ -6,9 +6,11 @@ import { exec } from 'child_process';
 import unzipper from 'unzipper';
 import { v4 as uuidv4 } from 'uuid';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
 
 const app = express();
+dotenv.config();
 const port = 3000;
 app.use(fileUpload());
 app.use(express.json());
@@ -142,33 +144,30 @@ app.post('/build', async (req, res) => {
 
 
 app.post('/push', async (req, res) => {
-    const { dirName } = req.body;
+    const { imageName } = req.body;
 
-    if (!dirName) {
-        return res.status(400).json({ success: false, message: 'Directory name required' });
+    if (!imageName) {
+        return res.status(400).json({ success: false, message: 'Image name required' });
     }
 
-    const uniqueImageName = `uploadedPlugin_${uuidv4()}`.toLowerCase();
 
     try {
 
-        const dockerfilePath = await findDockerfile(dirName);
+        const login = await loginToGithub();
 
-        if (!dockerfilePath) {
-            return res.status(400).json({ success: false, message: "No Docker file found" });
+        if (!login) {
+            return res.status(400).json({ success: false, message: "Login Failed" });
         }
 
-        const contextPath = path.dirname(dockerfilePath);
+        const githubRepo = "mehrnaz-MNH/plugin-upload-cobble"
 
-        await buildDockerImage(contextPath, uniqueImageName);
+        await pushToGithub(imageName, githubRepo)
 
-
-
-        return res.status(200).json({ success: true, message: "Docker image built successfully", imageName: uniqueImageName });
+        return res.status(200).json({ success: true, message: "Image Pushed successfully" });
 
     } catch (err) {
         console.error(err);
-        return res.status(500).json({ success: false, message: "Building Docker image failed" });
+        return res.status(500).json({ success: false, message: "Failed to Push Image into Github " });
     }
 })
 
@@ -216,10 +215,46 @@ function buildDockerImage(contextPath, imageName) {
 }
 
 
+
+function loginToGithub() {
+    return new Promise((resolve, reject) => {
+        const githubUsername = 'mehrnaz-MNH';
+        exec(`echo "${process.env.GITHUB_TOKEN}" | docker login ghcr.io -u "${githubUsername}" --password-stdin`, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error logging in to GitHub: ${stderr}`);
+                return reject(error);
+            }
+            console.log(`Logged in to GitHub: ${stdout}`);
+            resolve(true);
+        });
+    });
+}
+
+function pushToGithub(imageName, githubRepo) {
+    return new Promise((resolve, reject) => {
+        const fullImageName = `ghcr.io/${githubRepo}/${imageName}`;
+        exec(`docker tag ${imageName}  ${fullImageName}`, (error) => {
+            if (error) {
+                return reject(error);
+            }
+            exec(`docker push ${fullImageName}`, (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`Error pushing Docker image to GitHub: ${stderr}`);
+                    return reject(error);
+                }
+                console.log(`Docker image pushed to GitHub: ${stdout}`);
+                resolve(true);
+            });
+        });
+    });
+}
+
+
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
+    console.log(`app listening at http://localhost:${port}`);
 });
