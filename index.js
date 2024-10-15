@@ -36,6 +36,11 @@ app.post('/upload', async (req, res) => {
     const filePath = path.join(__dirname, 'files/uploads', pathName);
     const unZipPath = path.join(__dirname, 'files/unzipped', unZipName);
 
+
+    if (!fs.existsSync(path.join(__dirname, 'files'))) {
+        fs.mkdirSync(path.join(__dirname, 'files'));
+    }
+
     if (!fs.existsSync(path.join(__dirname, 'files/uploads'))) {
         fs.mkdirSync(path.join(__dirname, 'files/uploads'));
     }
@@ -110,7 +115,7 @@ app.post('/build', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Directory name required' });
     }
 
-    const uniqueImageName = `uploadedPlugin_${uuidv4()}`;
+    const uniqueImageName = `uploadedPlugin_${uuidv4()}`.toLowerCase();
 
     try {
 
@@ -133,6 +138,39 @@ app.post('/build', async (req, res) => {
         return res.status(500).json({ success: false, message: "Building Docker image failed" });
     }
 });
+
+
+
+app.post('/push', async (req, res) => {
+    const { dirName } = req.body;
+
+    if (!dirName) {
+        return res.status(400).json({ success: false, message: 'Directory name required' });
+    }
+
+    const uniqueImageName = `uploadedPlugin_${uuidv4()}`.toLowerCase();
+
+    try {
+
+        const dockerfilePath = await findDockerfile(dirName);
+
+        if (!dockerfilePath) {
+            return res.status(400).json({ success: false, message: "No Docker file found" });
+        }
+
+        const contextPath = path.dirname(dockerfilePath);
+
+        await buildDockerImage(contextPath, uniqueImageName);
+
+
+
+        return res.status(200).json({ success: true, message: "Docker image built successfully", imageName: uniqueImageName });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Building Docker image failed" });
+    }
+})
 
 
 async function findDockerfile(dir) {
@@ -166,7 +204,7 @@ function validateDockerfile(dockerfilePath) {
 
 function buildDockerImage(contextPath, imageName) {
     return new Promise((resolve, reject) => {
-        exec(`docker build -t ${imageName} ${contextPath}`, (error, stdout, stderr) => {
+        exec(`docker build -t ${imageName}  ${contextPath}`, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Error building Docker image: ${stderr}`);
                 return reject(error);
